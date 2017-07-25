@@ -41,7 +41,6 @@ def main():
     if not options.path_csv:
         parser.error('Parametro path_csv no especificadon')
 
-    print "hola"
     connect = Connection(options)
     postgres_connect = connect.get_connection()
     
