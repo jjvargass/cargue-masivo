@@ -7,6 +7,7 @@ import erppeek
 from optparse import OptionParser
 from connection import Connection
 from cuenta_contable import CuentaContable
+from rubro import Rubro
 
 
 logging.basicConfig()
@@ -45,16 +46,15 @@ def main():
     postgres_connect = connect.get_connection()
     
     cursor = connect.get_cursor()
-#     try:
-#         cursor.execute("CREATE TABLE financiera.test1 (id serial PRIMARY KEY, num integer, data varchar);")
-#     except Exception as e:
-#         print e
-#     postgres_connect.commit()
-    
-    
+   
     # Cuentas Contables
-    cuentas = CuentaContable(cursor, _logger, options)
-    cuentas.check_existence_cuenta_contable()
+#     cuentas = CuentaContable(cursor, _logger, options)
+#     cuentas.check_existence_cuenta_contable()
+    
+    # Rubro
+    rubro = Rubro(cursor, _logger, options)
+    rubro.check_existence_rubro()
+    
 
 
 if __name__ == '__main__':
