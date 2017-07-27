@@ -23,8 +23,8 @@ class Rubro():
 
                     if not self.get_data_rubro(row['codigo']):
                         self._logger.warning("*** Rubro: {0} no se encuentra en la bd ***".format(row['codigo']))
-                    else:
-                        self._logger.warning("*** Existe Rubro: {0} en la bd ***".format(row['codigo']))
+#                     else:
+#                         self._logger.warning("*** Existe Rubro: {0} en la bd ***".format(row['codigo']))
 
                 except Exception as e:
                     self._logger.error('*******************')
