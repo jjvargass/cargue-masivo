@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//src/conceptos-kronos/concepto.py=utf-8
 encoding//src/conceptos-kronos/connection.py=utf-8
 encoding//src/conceptos-kronos/cuenta_contable.py=utf-8
 encoding//src/conceptos-kronos/main.py=utf-8

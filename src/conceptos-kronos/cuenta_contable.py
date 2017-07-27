@@ -15,7 +15,7 @@ class CuentaContable():
             reader = csv.DictReader(csvfile)
             for row in reader:
                 try:
-                    cuenta_limpia = self.clear_cuenta(row['codigo'])  
+                    cuenta_limpia = self.clear_cuenta(row['codigo'])
                     ##self._logger.debug("*** Cuenta Contable: {0} ***".format(cuenta_limpia))
                     if not self.get_id_cuenta(cuenta_limpia):
                         self._logger.warning("*** La Cuenta Contable con código {0} no se encuentra en la bd ***".format(cuenta_limpia))
@@ -41,7 +41,7 @@ class CuentaContable():
         if rows:
             return rows[0]
         else:
-            return rows        
+            return rows
 
     def get_data_cuenta(self, cuenta_limpia):
         try:
@@ -60,7 +60,7 @@ class CuentaContable():
             return all_rows[0][0]
         else:
             #self._logger.debug("resultado: {0} ".format(all_rows))
-            return None  
+            return None
 
     def check_validation(self, data_cuenta):
         cuenta = data_cuenta[5]

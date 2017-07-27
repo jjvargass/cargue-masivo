@@ -8,7 +8,7 @@ from optparse import OptionParser
 from connection import Connection
 from cuenta_contable import CuentaContable
 from rubro import Rubro
-
+from concepto import Concepto
 
 logging.basicConfig()
 _logger = logging.getLogger('IMPORT')
@@ -50,12 +50,18 @@ def main():
     # Cuentas Contables
 #     cuentas = CuentaContable(cursor, _logger, options)
 #     cuentas.check_existence_cuenta_contable()
-    
-    # Rubro
-    rubro = Rubro(cursor, _logger, options)
-    rubro.check_existence_rubro()
-    
 
+    # Rubro
+#     rubro = Rubro(cursor, _logger, options)
+#     rubro.check_existence_rubro()
+
+    # Conceptos
+    concepto = Concepto(cursor, _logger, options)
+    operara = concepto.check_existence_rubro_and_cuentas()
+    if operara:
+        _logger.warning("********* Verificación Exitosa: {0} *********".format(operara))
+    else:
+        _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
 
 if __name__ == '__main__':
     main()
