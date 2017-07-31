@@ -44,9 +44,9 @@ def main():
 
     connect = Connection(options)
     postgres_connect = connect.get_connection()
-    
+
     cursor = connect.get_cursor()
-   
+
     # Cuentas Contables
 #     cuentas = CuentaContable(cursor, _logger, options)
 #     cuentas.check_existence_cuenta_contable()
