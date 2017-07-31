@@ -44,7 +44,6 @@ def main():
 
     connect = Connection(options)
     postgres_connect = connect.get_connection()
-
     cursor = connect.get_cursor()
 
     # Cuentas Contables
@@ -56,10 +55,11 @@ def main():
 #     rubro.check_existence_rubro()
 
     # Conceptos
-    concepto = Concepto(cursor, _logger, options)
+    concepto = Concepto(cursor, _logger, options, postgres_connect)
     operara = concepto.check_existence_rubro_and_cuentas()
     if operara:
-        _logger.warning("********* Verificación Exitosa: {0} *********".format(operara))
+        _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
+        concepto.register_concepto()
     else:
         _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
 

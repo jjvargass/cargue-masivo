@@ -1,4 +1,4 @@
-padre,hijo,codigo,nombre,fecha_creacion,cabeza,fecha_expiracion,descripcion,tipo_concepto,afectacion_presupuesto,afectacion_contabilidad,codigo_rubro,cuenta_contable_debito,cuenta_contable_credito
-1,,1,NOMINA ADMINISTRATIVOS,2017-07-27,TRUE,,,2,X,X,,,
-,,1-1,SUELDO BASICO,2017-07-27,FALSE,,,2,X,X,3-1-001-01-01-01,5-1-01-01-01-00-XX,5-1-01-01-03-00
-,,1-2,GTOS  REPRESENTACION,2017-07-27,FALSE,,,2,X,X,3-1-001-01-01-04,5-1-01-05-00-00,5-1-01-01-03-00-PP
+padre,codigo,nombre,fecha_creacion,cabeza,fecha_expiracion,descripcion,tipo_concepto,afectacion_presupuesto,afectacion_contabilidad,codigo_rubro,cuenta_contable_debito,cuenta_contable_credito
+1,1,NOMINA ADMINISTRATIVOS,2017-07-27,TRUE,,,2,X,X,,,
+,1-1,SUELDO BASICO,2017-07-27,FALSE,,,2,X,X,3-1-001-01-01-01,5-1-01-01-01-00,5-1-01-01-03-00
+,1-2,GTOS  REPRESENTACION,2017-07-27,FALSE,,,2,X,X,3-1-001-01-01-04,5-1-01-05-00-00,5-1-01-01-03-00

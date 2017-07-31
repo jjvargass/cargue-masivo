@@ -1,16 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import psycopg2
+from psycopg2 import *
 import csv
 from cuenta_contable import CuentaContable
 from rubro import Rubro
 
 class Concepto():
-    def __init__(self, cursor, _logger, options):
+    def __init__(self, cursor, _logger, options, connect):
         self.cursor = cursor
         self._logger = _logger
         self.options = options
+        self.connect = connect
+        
 
     def check_existence_rubro_and_cuentas(self):
         self._logger.debug("+++ Verifica existencia de rubros y cuentas contables que se asociaran al concepto +++")
@@ -31,22 +33,78 @@ class Concepto():
                             self._logger.warning("****** Rubro: {0} no se encuentra en la bd ******".format(row['codigo_rubro']))
                             validacion_exitosa = False
                     #Cuentas Contables
+                    # debito
                     if row['cuenta_contable_debito']:
+                        self._logger.debug("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                         if not cuentas.get_id_cuenta(cuentas.clear_cuenta(row['cuenta_contable_debito'])):
-                            self._logger.warning("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                             self._logger.warning("********* Cuenta debito: {0} no se encuentra en la bd *********".format(row['cuenta_contable_debito']))
                             validacion_exitosa = False
+#                         elif 'debito' != cuentas.get_naturaleza(row['cuenta_contable_debito']):
+#                             self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza debito *********".format(row['cuenta_contable_debito']))
+#                             validacion_exitosa = False
+                    # credito
                     if row['cuenta_contable_credito']:
                         if not cuentas.get_id_cuenta(cuentas.clear_cuenta(row['cuenta_contable_credito'])):
-                            self._logger.warning("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                             self._logger.warning("********* Cuenta credito': {0} no se encuentra en la bd *********".format(row['cuenta_contable_credito']))
                             validacion_exitosa = False
+#                         elif 'credito' != cuentas.get_naturaleza(row['cuenta_contable_credito']):
+#                             self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza credito *********".format(row['cuenta_contable_credito']))
+#                             validacion_exitosa = False
                 except Exception as e:
                     self._logger.error('************* check_existence_rubro_and_cuentas *************')
                     self._logger.exception(e)
             self._logger.debug("+++ Fin Verifica existencia de rubros y cuentas contables que se asociaran al concepto +++")
             return validacion_exitosa
  
-        def saludo(self):
-            self._logger.debug("+++ Verifica existencia de rubros y cuentas contables que se asociaran al concepto +++")
-            print "hola"
+    def register_concepto(self):
+        self._logger.debug("+++ Registra Conceptos +++")
+        with open('csv/concepto.csv') as csvfile:
+            reader = csv.DictReader(csvfile)
+            padre_id = None
+            for row in reader:
+                try:
+                    self._logger.debug("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
+                    if row['padre']:
+                        padre_id = self.add_concepto('', row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['afectacion_presupuesto'], row['afectacion_contabilidad'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                        self._logger.debug("*** Padre: {0} ***".format(padre_id))
+                    else:
+                    # crear concepto
+                        self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['afectacion_presupuesto'], row['afectacion_contabilidad'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                except Exception as e:
+                    self._logger.error('************* register_concepto *************')
+                    self._logger.exception(e)
+            self._logger.debug("+++ Fin Registra Conceptos +++")
+
+    def add_concepto(self, padre_id, padre, codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, afectacion_presupuesto, afectacion_contabilidad, codigo_rubro, cuenta_contable_debito, cuenta_contable_credito):
+        rubro = Rubro(self.cursor, self._logger, self.options)
+        rubro_id = rubro.get_id_rubro(codigo_rubro)
+        if padre:
+            self._logger.debug("*** Insertando padre: {0} ***".format(padre))
+            if len(descripcion) == 0:
+                descripcion = nombre
+            if len(fecha_expiracion) == 0:
+                sql = """
+                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto)
+                    values
+                    ('{0}','{1}','{2}',{3},'{4}',{5}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto)
+            else:
+                sql = """
+                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto)
+                    values
+                    ('{0}', '{1}','{2}',{3},'{4}',{5},{6}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto)
+            try:
+                self.cursor.execute(sql)
+                self.connect.commit()
+            except Exception as e:
+                self._logger.error('********* add_concepto padre **********')
+                self._logger.exception(e)
+                self.connect.rollback()()
+                return None
+            else:
+                rows = self.cursor.fetchone()
+                if rows:
+                    return rows[0]
+                else:
+                    return rows
+        else:
+            self._logger.debug("*** Insertando hijo: {0} ***".format(padre))

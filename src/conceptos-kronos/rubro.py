@@ -47,6 +47,22 @@ class Rubro():
             #self._logger.debug("resultado: {0} ".format(all_rows))
             return None
 
+    def get_id_rubro(self, rubro):
+        #self.get_naturaleza(cuenta_limpia)        
+        try:
+            self.cursor.execute("""
+                select id
+                from financiera.rubro
+                where codigo = '{0}';""".format(rubro))
+        except Exception as e:
+            self._logger.error('********* get_id_rubro **********')
+            self._logger.exception(e)
+        rows = self.cursor.fetchone()
+        if rows:
+            return rows[0]
+        else:
+            return rows
+
     def check_phater_rubro(self, rubro):
         #self._logger.debug(" {0} ".format(rubro))
         rubro_split = rubro.split("-")
