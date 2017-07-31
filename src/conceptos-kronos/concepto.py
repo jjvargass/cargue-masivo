@@ -12,7 +12,6 @@ class Concepto():
         self._logger = _logger
         self.options = options
         self.connect = connect
-        
 
     def check_existence_rubro_and_cuentas(self):
         self._logger.debug("+++ Verifica existencia de rubros y cuentas contables que se asociaran al concepto +++")
