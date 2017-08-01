@@ -24,7 +24,6 @@ class Concepto():
             validacion_exitosa = True
             for row in reader:
                 try:
-                    #self._logger.debug("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                     # Rubro
                     if row['codigo_rubro']:
                         if not rubro.get_data_rubro(row['codigo_rubro']):
@@ -64,17 +63,20 @@ class Concepto():
                 try:
                     self._logger.debug("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                     if row['padre']:
-                        padre_id = self.add_concepto('', row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['afectacion_presupuesto'], row['afectacion_contabilidad'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
-                        self._logger.debug("*** Padre: {0} ***".format(padre_id))
+                        padre_id = self.add_concepto('', row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                        #self._logger.debug("*** Padre: {0} ***".format(padre_id))
                     else:
-                    # crear concepto
-                        self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['afectacion_presupuesto'], row['afectacion_contabilidad'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                        # crear concepto
+                        hijo = self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                        # registrar_agectacion
+                        self.register_afectacion(row['afectacion_presupuesto_ingreso'], row['afectacion_presupuesto_egreso'],'1',hijo) #1 presupuesto / 2 contabilidad
+                        self.register_afectacion(row['afectacion_contabilidad_ingreso'], row['afectacion_contabilidad_egreso'],'2',hijo) #1 presupuesto / 2 contabilidad
                 except Exception as e:
                     self._logger.error('************* register_concepto *************')
                     self._logger.exception(e)
             self._logger.debug("+++ Fin Registra Conceptos +++")
 
-    def add_concepto(self, padre_id, padre, codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, afectacion_presupuesto, afectacion_contabilidad, codigo_rubro, cuenta_contable_debito, cuenta_contable_credito):
+    def add_concepto(self, padre_id, padre, codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, codigo_rubro, cuenta_contable_debito, cuenta_contable_credito):
         rubro = Rubro(self.cursor, self._logger, self.options)
         rubro_id = rubro.get_id_rubro(codigo_rubro)
         if padre:
@@ -107,3 +109,66 @@ class Concepto():
                     return rows
         else:
             self._logger.debug("*** Insertando hijo: {0} ***".format(padre))
+            if len(descripcion) == 0:
+                descripcion = nombre
+            if len(fecha_expiracion) == 0:
+                sql = """
+                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto, rubro)
+                    values
+                    ('{0}','{1}','{2}',{3},'{4}',{5}, {6}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto, rubro_id)
+            else:
+                sql = """
+                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, rubro)
+                    values
+                    ('{0}', '{1}','{2}',{3},'{4}',{5},{6}, {7}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, rubro_id)
+            try:
+                self.cursor.execute(sql)
+                self.connect.commit()
+            except Exception as e:
+                self._logger.error('********* add_concepto padre **********')
+                self._logger.exception(e)
+                self.connect.rollback()()
+                return None
+            else:
+                rows = self.cursor.fetchone()
+                if rows:
+                    return rows[0]
+                else:
+                    return rows
+
+    def register_afectacion(self, ingreso, egreso, tipo_afectacion, id_concepto):
+        data_insert = ()
+        if tipo_afectacion == '1':
+            self._logger.debug("*** presupuesto ***")
+            if len(ingreso) == 0 and len(egreso) == 0:
+                data_insert = ('FALSE', 'FALSE', id_concepto, 1)
+            elif len(ingreso) != 0 and len(egreso) == 0:
+                data_insert = ('TRUE', 'FALSE', id_concepto, 1)
+            elif len(ingreso) == 0 and len(egreso) != 0:
+                data_insert = ('FALSE', 'TRUE', id_concepto, 1)
+            else:
+                data_insert = ('TRUE', 'TRUE', id_concepto, 1)
+        else:
+            self._logger.debug("*** contabilidad ***")
+            if len(ingreso) == 0 and len(egreso) == 0:
+                data_insert = ('FALSE', 'FALSE', id_concepto, 2)
+            elif len(ingreso) != 0 and len(egreso) == 0:
+                data_insert = ('TRUE', 'FALSE', id_concepto, 2)
+            elif len(ingreso) == 0 and len(egreso) != 0:
+                data_insert = ('FALSE', 'TRUE', id_concepto, 2)
+            else:
+                data_insert = ('TRUE', 'TRUE', id_concepto, 2)
+        sql = """
+        insert into financiera.afectacion_concepto(afectacion_ingreso, afectacion_egreso, concepto, tipo_afectacion)
+        values
+        ({0[0]}, {0[1]}, {0[2]}, {0[3]}) RETURNING id;""".format(data_insert)
+        #self._logger.debug("*** sql: {0} ***".format(sql))
+        try:
+            self.cursor.execute(sql)
+            self.connect.commit()
+        except Exception as e:
+            self._logger.error('********* register_afectacion **********')
+            self._logger.exception(e)
+            self.connect.rollback()()
+
+
