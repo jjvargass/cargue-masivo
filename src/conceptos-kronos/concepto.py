@@ -61,16 +61,22 @@ class Concepto():
             padre_id = None
             for row in reader:
                 try:
+                    hijo_id = None
                     self._logger.debug("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                     if row['padre']:
                         padre_id = self.add_concepto('', row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
                         #self._logger.debug("*** Padre: {0} ***".format(padre_id))
                     else:
                         # crear concepto
-                        hijo = self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
+                        hijo_id = self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
                         # registrar_agectacion
-                        self.register_afectacion(row['afectacion_presupuesto_ingreso'], row['afectacion_presupuesto_egreso'],'1',hijo) #1 presupuesto / 2 contabilidad
-                        self.register_afectacion(row['afectacion_contabilidad_ingreso'], row['afectacion_contabilidad_egreso'],'2',hijo) #1 presupuesto / 2 contabilidad
+                        self.register_afectacion(row['afectacion_presupuesto_ingreso'], row['afectacion_presupuesto_egreso'],'1',hijo_id) #1 presupuesto / 2 contabilidad
+                        self.register_afectacion(row['afectacion_contabilidad_ingreso'], row['afectacion_contabilidad_egreso'],'2',hijo_id) #1 presupuesto / 2 contabilidad
+
+                    # registratr gerarquia
+                    if padre_id and hijo_id:
+                        self.register_geraquia(padre_id, hijo_id)
+
                 except Exception as e:
                     self._logger.error('************* register_concepto *************')
                     self._logger.exception(e)
@@ -171,4 +177,28 @@ class Concepto():
             self._logger.exception(e)
             self.connect.rollback()()
 
+    def register_geraquia(self, padre, hijo):
+        sql = """
+        insert into financiera.concepto_concepto(concepto_padre, concepto_hijo)
+        values
+        ({0}, {1}) RETURNING id;""".format(padre, hijo)
+        try:
+            self.cursor.execute(sql)
+            self.connect.commit()
+        except Exception as e:
+            self._logger.error('********* register_geraquia **********')
+            self._logger.exception(e)
+            self.connect.rollback()()
 
+    def register_concepto_cuenta_contable(self, padre, hijo):
+        sql = """
+        insert into financiera.concepto_concepto(concepto_padre, concepto_hijo)
+        values
+        ({0}, {1}) RETURNING id;""".format(padre, hijo)
+        try:
+            self.cursor.execute(sql)
+            self.connect.commit()
+        except Exception as e:
+            self._logger.error('********* register_geraquia **********')
+            self._logger.exception(e)
+            self.connect.rollback()()
