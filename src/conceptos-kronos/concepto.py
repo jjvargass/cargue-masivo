@@ -72,6 +72,9 @@ class Concepto():
                         # registrar_agectacion
                         self.register_afectacion(row['afectacion_presupuesto_ingreso'], row['afectacion_presupuesto_egreso'],'1',hijo_id) #1 presupuesto / 2 contabilidad
                         self.register_afectacion(row['afectacion_contabilidad_ingreso'], row['afectacion_contabilidad_egreso'],'2',hijo_id) #1 presupuesto / 2 contabilidad
+                        # registrar cuentas contables
+                        self.register_concepto_cuenta_contable(row['cuenta_contable_debito'], hijo_id)
+                        self.register_concepto_cuenta_contable(row['cuenta_contable_credito'], hijo_id)
 
                     # registratr gerarquia
                     if padre_id and hijo_id:
@@ -86,7 +89,6 @@ class Concepto():
         rubro = Rubro(self.cursor, self._logger, self.options)
         rubro_id = rubro.get_id_rubro(codigo_rubro)
         if padre:
-            self._logger.debug("*** Insertando padre: {0} ***".format(padre))
             if len(descripcion) == 0:
                 descripcion = nombre
             if len(fecha_expiracion) == 0:
@@ -114,7 +116,6 @@ class Concepto():
                 else:
                     return rows
         else:
-            self._logger.debug("*** Insertando hijo: {0} ***".format(padre))
             if len(descripcion) == 0:
                 descripcion = nombre
             if len(fecha_expiracion) == 0:
@@ -145,7 +146,6 @@ class Concepto():
     def register_afectacion(self, ingreso, egreso, tipo_afectacion, id_concepto):
         data_insert = ()
         if tipo_afectacion == '1':
-            self._logger.debug("*** presupuesto ***")
             if len(ingreso) == 0 and len(egreso) == 0:
                 data_insert = ('FALSE', 'FALSE', id_concepto, 1)
             elif len(ingreso) != 0 and len(egreso) == 0:
@@ -155,7 +155,6 @@ class Concepto():
             else:
                 data_insert = ('TRUE', 'TRUE', id_concepto, 1)
         else:
-            self._logger.debug("*** contabilidad ***")
             if len(ingreso) == 0 and len(egreso) == 0:
                 data_insert = ('FALSE', 'FALSE', id_concepto, 2)
             elif len(ingreso) != 0 and len(egreso) == 0:
@@ -168,7 +167,6 @@ class Concepto():
         insert into financiera.afectacion_concepto(afectacion_ingreso, afectacion_egreso, concepto, tipo_afectacion)
         values
         ({0[0]}, {0[1]}, {0[2]}, {0[3]}) RETURNING id;""".format(data_insert)
-        #self._logger.debug("*** sql: {0} ***".format(sql))
         try:
             self.cursor.execute(sql)
             self.connect.commit()
@@ -190,15 +188,18 @@ class Concepto():
             self._logger.exception(e)
             self.connect.rollback()()
 
-    def register_concepto_cuenta_contable(self, padre, hijo):
+    def register_concepto_cuenta_contable(self, cuenta_contable, concepto_id):
+        #Cuentas Contables
+        cuentas = CuentaContable(self.cursor, self._logger, self.options)
+        cuenta_id = cuentas.get_id_cuenta(cuentas.clear_cuenta(cuenta_contable))
         sql = """
-        insert into financiera.concepto_concepto(concepto_padre, concepto_hijo)
+        insert into financiera.concepto_cuenta_contable(cuenta_contable, concepto, cuenta_acreedora)
         values
-        ({0}, {1}) RETURNING id;""".format(padre, hijo)
+        ({0}, {1}, 'FALSE');""".format(cuenta_id, concepto_id)
         try:
             self.cursor.execute(sql)
             self.connect.commit()
         except Exception as e:
-            self._logger.error('********* register_geraquia **********')
+            self._logger.error('********* register_concepto_cuenta_contable **********')
             self._logger.exception(e)
             self.connect.rollback()()
