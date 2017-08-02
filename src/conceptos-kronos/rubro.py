@@ -21,14 +21,44 @@ class Rubro():
 #                     else:
 #                         self._logger.warning("*** Existe Rubro: {0} en la bd ***".format(row['codigo']))
 
-                    if not self.get_data_rubro(row['codigo']):
-                        self._logger.warning("*** Rubro: {0} no se encuentra en la bd ***".format(row['codigo']))
+#                     if not self.get_data_rubro(row['codigo']):
+#                         self._logger.warning("*** Rubro: {0} no se encuentra en la bd ***".format(row['codigo']))
+                    self.validate_format_rubro(row['codigo'])
 #                     else:
 #                         self._logger.warning("*** Existe Rubro: {0} en la bd ***".format(row['codigo']))
 
                 except Exception as e:
                     self._logger.error('*******************')
                     self._logger.exception(e)
+
+    def validate_format_rubro(self, rubro):
+#         self._logger.debug(" {0} ".format(rubro))
+        rubro_split = rubro.split("-")
+        tamano = len(rubro_split)
+#         self._logger.debug(" {0} ".format(tamano))
+        if tamano >= 3:
+            if len(rubro_split[2]) != 3 and len(rubro_split[2]) < 3:
+                codigo = rubro_split[2];
+                while len(codigo) < 3:
+                    codigo = '0' + codigo
+                rubro_split[2] = codigo
+        #
+        if tamano >= 4:
+            if len(rubro_split[3]) != 2 and len(rubro_split[3]) < 2:
+                codigo = rubro_split[3];
+                while len(codigo) < 2:
+                    codigo = '0' + codigo
+                rubro_split[3] = codigo
+        #
+        if tamano >= 7:
+            if len(rubro_split[6]) != 4 and len(rubro_split[6]) < 4:
+                codigo = rubro_split[6];
+                while len(codigo) < 4:
+                    codigo = '0' + codigo
+                rubro_split[6] = codigo
+        new_rubro = '-'.join(rubro_split)
+#         self._logger.debug(" {0} \n".format(new_rubro))
+        return new_rubro
 
     def get_data_rubro(self, rubro):
         try:

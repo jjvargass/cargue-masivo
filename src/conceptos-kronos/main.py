@@ -23,7 +23,7 @@ def main():
     parser.add_option("-P", "--db_password", dest="db_password", help="database password", default="postgres")
     parser.add_option("-H", "--host_serverBD", dest="host_serverBD", help="server host", default="localhost")
     parser.add_option("-K", "--port_serverBD", dest="port_serverBD", help="server port", default="5432")
-    parser.add_option("-p", "--path_csv", dest="path_csv", help="path of file for uploading", default="plan_contraloria_bogota/")
+    parser.add_option("-p", "--path_csv", dest="path_csv", help="path of file for uploading", default="csv/concepto.csv")
     parser.add_option("-d", "--debug", dest="debug", help="Mostrar mensajes de debug utilize 10", default=10)
 
     (options, args) = parser.parse_args()

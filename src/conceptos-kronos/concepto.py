@@ -15,7 +15,7 @@ class Concepto():
 
     def check_existence_rubro_and_cuentas(self):
         self._logger.debug("+++ Verifica existencia de rubros y cuentas contables que se asociaran al concepto +++")
-        with open('csv/concepto.csv') as csvfile:
+        with open(self.options.path_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             # Rubro
             rubro = Rubro(self.cursor, self._logger, self.options)
@@ -26,7 +26,7 @@ class Concepto():
                 try:
                     # Rubro
                     if row['codigo_rubro']:
-                        if not rubro.get_data_rubro(row['codigo_rubro']):
+                        if not rubro.get_data_rubro(rubro.validate_format_rubro(row['codigo_rubro'])):
                             self._logger.warning("*** Concepto: {0} {1} ***".format(row['codigo'], row['nombre']))
                             self._logger.warning("****** Rubro: {0} no se encuentra en la bd ******".format(row['codigo_rubro']))
                             validacion_exitosa = False
@@ -56,7 +56,7 @@ class Concepto():
  
     def register_concepto(self):
         self._logger.debug("+++ Registra Conceptos +++")
-        with open('csv/concepto.csv') as csvfile:
+        with open(self.options.path_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             padre_id = None
             for row in reader:
@@ -87,7 +87,9 @@ class Concepto():
 
     def add_concepto(self, padre_id, padre, codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, codigo_rubro, cuenta_contable_debito, cuenta_contable_credito):
         rubro = Rubro(self.cursor, self._logger, self.options)
-        rubro_id = rubro.get_id_rubro(codigo_rubro)
+        rubro_id = rubro.get_id_rubro(rubro.validate_format_rubro(codigo_rubro))
+        codigo = codigo.strip()
+        nombre = nombre.strip()
         if padre:
             if len(descripcion) == 0:
                 descripcion = nombre
