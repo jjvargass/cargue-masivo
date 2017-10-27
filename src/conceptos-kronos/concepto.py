@@ -95,6 +95,8 @@ class Concepto():
         if padre:
             if len(descripcion) == 0:
                 descripcion = nombre
+            else:
+                descripcion = descripcion.strip()
             if len(fecha_expiracion) == 0:
                 sql = """
                     insert into financiera.concepto_tesoral(codigo, nombre, fecha_creacion, descripcion, tipo_concepto_tesoral)
@@ -198,7 +200,7 @@ class Concepto():
         cuentas = CuentaContable(self.cursor, self._logger, self.options)
         cuenta_id = cuentas.get_id_cuenta(cuentas.clear_cuenta(cuenta_contable))
         sql = """
-        insert into financiera.concepto_tesoral_cuenta_contable(cuenta_contable, concepto, cuenta_acreedora)
+        insert into financiera.concepto_tesoral_cuenta_contable(cuenta_contable, concepto_tesoral, cuenta_acreedora)
         values
         ({0}, {1}, 'FALSE');""".format(cuenta_id, concepto_id)
         try:
