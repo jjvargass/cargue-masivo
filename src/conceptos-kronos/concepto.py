@@ -37,17 +37,17 @@ class Concepto():
                         if not cuentas.get_id_cuenta(cuentas.clear_cuenta(row['cuenta_contable_debito'])):
                             self._logger.warning("********* Cuenta debito: {0} no se encuentra en la bd *********".format(row['cuenta_contable_debito']))
                             validacion_exitosa = False
-#                         elif 'debito' != cuentas.get_naturaleza(row['cuenta_contable_debito']):
-#                             self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza debito *********".format(row['cuenta_contable_debito']))
-#                             validacion_exitosa = False
+                        elif 'debito' != cuentas.get_naturaleza(row['cuenta_contable_debito']):
+                            self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza debito *********".format(row['cuenta_contable_debito']))
+                            validacion_exitosa = False
                     # credito
                     if row['cuenta_contable_credito']:
                         if not cuentas.get_id_cuenta(cuentas.clear_cuenta(row['cuenta_contable_credito'])):
                             self._logger.warning("********* Cuenta credito': {0} no se encuentra en la bd *********".format(row['cuenta_contable_credito']))
                             validacion_exitosa = False
-#                         elif 'credito' != cuentas.get_naturaleza(row['cuenta_contable_credito']):
-#                             self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza credito *********".format(row['cuenta_contable_credito']))
-#                             validacion_exitosa = False
+                        elif 'credito' != cuentas.get_naturaleza(row['cuenta_contable_credito']):
+                            self._logger.warning("********* Cuenta : {0} no Corresponce a la naturaleza credito *********".format(row['cuenta_contable_credito']))
+                            validacion_exitosa = False
                 except Exception as e:
                     self._logger.error('************* check_existence_rubro_and_cuentas *************')
                     self._logger.exception(e)
@@ -67,6 +67,8 @@ class Concepto():
                         padre_id = self.add_concepto('', row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
                         #self._logger.debug("*** Padre: {0} ***".format(padre_id))
                     else:
+                        # get padre solucion temporal
+                        padre_id = self.get_id_padre_concepto(row['codigo'])
                         # crear concepto
                         hijo_id = self.add_concepto(padre_id, row['padre'], row['codigo'], row['nombre'], row['fecha_creacion'], row['cabeza'], row['fecha_expiracion'], row['descripcion'], row['tipo_concepto'], row['codigo_rubro'], row['cuenta_contable_debito'], row['cuenta_contable_credito'])
                         # registrar_agectacion
@@ -95,14 +97,14 @@ class Concepto():
                 descripcion = nombre
             if len(fecha_expiracion) == 0:
                 sql = """
-                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto)
+                    insert into financiera.concepto_tesoral(codigo, nombre, fecha_creacion, descripcion, tipo_concepto_tesoral)
                     values
-                    ('{0}','{1}','{2}',{3},'{4}',{5}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto)
+                    ('{0}','{1}','{2}','{3}',{4}) RETURNING id;""".format(codigo, nombre, fecha_creacion, descripcion, tipo_concepto)
             else:
                 sql = """
-                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto)
+                    insert into financiera.concepto_tesoral(codigo, nombre, fecha_creacion, fecha_expiracion, descripcion, tipo_concepto_tesoral)
                     values
-                    ('{0}', '{1}','{2}',{3},'{4}',{5},{6}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto)
+                    ('{0}','{1}','{2}','{3}','{4}',{5}) RETURNING id;""".format(codigo, nombre, fecha_creacion, fecha_expiracion, descripcion, tipo_concepto)
             try:
                 self.cursor.execute(sql)
                 self.connect.commit()
@@ -112,6 +114,7 @@ class Concepto():
                 self.connect.rollback()()
                 return None
             else:
+                self._logger.error('********* ok **********')
                 rows = self.cursor.fetchone()
                 if rows:
                     return rows[0]
@@ -122,14 +125,14 @@ class Concepto():
                 descripcion = nombre
             if len(fecha_expiracion) == 0:
                 sql = """
-                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto, rubro)
+                    insert into financiera.concepto_tesoral(codigo, nombre, fecha_creacion, descripcion, tipo_concepto_tesoral, rubro)
                     values
-                    ('{0}','{1}','{2}',{3},'{4}',{5}, {6}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, descripcion, tipo_concepto, rubro_id)
+                    ('{0}','{1}','{2}','{3}',{4},{5}) RETURNING id;""".format(codigo, nombre, fecha_creacion, descripcion, tipo_concepto, rubro_id)
             else:
                 sql = """
-                    insert into financiera.concepto(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, rubro)
+                    insert into financiera.concepto_tesoral(codigo, nombre, fecha_creacion, fecha_expiracion, descripcion, tipo_concepto_tesoral, rubro)
                     values
-                    ('{0}', '{1}','{2}',{3},'{4}',{5},{6}, {7}) RETURNING id;""".format(codigo, nombre, fecha_creacion, cabeza, fecha_expiracion, descripcion, tipo_concepto, rubro_id)
+                    ('{0}', '{1}','{2}','{3}',{4},{5},{6}) RETURNING id;""".format(codigo, nombre, fecha_creacion, fecha_expiracion, descripcion, tipo_concepto, rubro_id)
             try:
                 self.cursor.execute(sql)
                 self.connect.commit()
@@ -166,7 +169,7 @@ class Concepto():
             else:
                 data_insert = ('TRUE', 'TRUE', id_concepto, 2)
         sql = """
-        insert into financiera.afectacion_concepto(afectacion_ingreso, afectacion_egreso, concepto, tipo_afectacion)
+        insert into financiera.afectacion_concepto_tesoral(afectacion_ingreso, afectacion_egreso, concepto_tesoral, tipo_afectacion)
         values
         ({0[0]}, {0[1]}, {0[2]}, {0[3]}) RETURNING id;""".format(data_insert)
         try:
@@ -179,7 +182,7 @@ class Concepto():
 
     def register_geraquia(self, padre, hijo):
         sql = """
-        insert into financiera.concepto_concepto(concepto_padre, concepto_hijo)
+        insert into financiera.estructura_conceptos_tesorales(concepto_padre, concepto_hijo)
         values
         ({0}, {1}) RETURNING id;""".format(padre, hijo)
         try:
@@ -195,7 +198,7 @@ class Concepto():
         cuentas = CuentaContable(self.cursor, self._logger, self.options)
         cuenta_id = cuentas.get_id_cuenta(cuentas.clear_cuenta(cuenta_contable))
         sql = """
-        insert into financiera.concepto_cuenta_contable(cuenta_contable, concepto, cuenta_acreedora)
+        insert into financiera.concepto_tesoral_cuenta_contable(cuenta_contable, concepto, cuenta_acreedora)
         values
         ({0}, {1}, 'FALSE');""".format(cuenta_id, concepto_id)
         try:
@@ -205,3 +208,35 @@ class Concepto():
             self._logger.error('********* register_concepto_cuenta_contable **********')
             self._logger.exception(e)
             self.connect.rollback()()
+
+    def get_id_concepto(self, concepto_codigo):
+        try:
+            self.cursor.execute("""
+                select id
+                from financiera.concepto_tesoral
+                where codigo = '{0}';""".format(concepto_codigo))
+        except Exception as e:
+            self._logger.error('********* get_id_rubro **********')
+            self._logger.exception(e)
+        rows = self.cursor.fetchone()
+        if rows:
+            return rows[0]
+        else:
+            return rows
+
+    def get_codigo_padre_concepto(self, codigo_hijo):
+        concepto_split = codigo_hijo.split("-")
+        tamano = len(concepto_split)
+        if tamano == 1:
+            return False
+        else:
+            del concepto_split[-1]
+            concepto_padre = '-'.join(concepto_split)
+            return concepto_padre
+
+
+    def get_id_padre_concepto(self, codigo_concepto_hijo):
+        padre = self.get_codigo_padre_concepto(codigo_concepto_hijo)
+        id_padre = self.get_id_concepto(padre)
+        return id_padre
+        
