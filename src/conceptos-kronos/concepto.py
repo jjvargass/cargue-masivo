@@ -24,6 +24,10 @@ class Concepto():
             validacion_exitosa = True
             for row in reader:
                 try:
+                    # Tiene padre el concepto
+                    if not self.get_id_padre_concepto(row['codigo']):
+                       self._logger.warning("*** Concepto No cuenta con Padre: {0} {1} ***".format(row['codigo'], row['nombre']))
+                       validacion_exitosa = False
                     # Rubro
                     if row['codigo_rubro']:
                         if not rubro.get_data_rubro(rubro.validate_format_rubro(row['codigo_rubro'])):
@@ -81,6 +85,10 @@ class Concepto():
                     # registratr gerarquia
                     if padre_id and hijo_id:
                         self.register_geraquia(padre_id, hijo_id)
+
+                    # registrar facultar proyecto
+                    if hijo_id and row['facultad'] and row['proyecto_curricular']:
+                        self.register_facultad_proyecto(hijo_id, row['facultad'], row['proyecto_curricular'])
 
                 except Exception as e:
                     self._logger.error('************* register_concepto *************')
@@ -241,4 +249,16 @@ class Concepto():
         padre = self.get_codigo_padre_concepto(codigo_concepto_hijo)
         id_padre = self.get_id_concepto(padre)
         return id_padre
-        
+
+    def register_facultad_proyecto(self, concepto_id, facultad_id, proyecto_id):
+        sql = """
+        insert into financiera.estructura_conceptos_tesorales_facultad_proyecto(concepto_tesoral, facultad, proyecto_curricular)
+        values
+        ({0}, {1}, {2}) RETURNING id;""".format(concepto_id, facultad_id, proyecto_id)
+        try:
+            self.cursor.execute(sql)
+            self.connect.commit()
+        except Exception as e:
+            self._logger.error('********* register_facultad_proyecto **********')
+            self._logger.exception(e)
+            self.connect.rollback()()

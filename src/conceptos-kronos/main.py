@@ -59,7 +59,7 @@ def main():
     operara = concepto.check_existence_rubro_and_cuentas()
     if operara:
         _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
-        concepto.register_concepto()
+        #concepto.register_concepto()
     else:
         _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
 
