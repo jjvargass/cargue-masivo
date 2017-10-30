@@ -252,7 +252,7 @@ class Concepto():
 
     def register_facultad_proyecto(self, concepto_id, facultad_id, proyecto_id):
         sql = """
-        insert into financiera.estructura_conceptos_tesorales_facultad_proyecto(concepto_tesoral, facultad, proyecto_curricular)
+        insert into financiera.conceptos_tesorales_facultad_proyecto(concepto_tesoral, facultad, proyecto_curricular)
         values
         ({0}, {1}, {2}) RETURNING id;""".format(concepto_id, facultad_id, proyecto_id)
         try:
