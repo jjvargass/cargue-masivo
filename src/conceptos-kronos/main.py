@@ -9,6 +9,7 @@ from connection import Connection
 from cuenta_contable import CuentaContable
 from rubro import Rubro
 from concepto import Concepto
+from homologacion_concepto import Homologacion
 
 logging.basicConfig()
 _logger = logging.getLogger('IMPORT')
@@ -55,13 +56,17 @@ def main():
 #     rubro.check_existence_rubro()
 
     # Conceptos
-    concepto = Concepto(cursor, _logger, options, postgres_connect)
-    operara = concepto.check_existence_rubro_and_cuentas()
-    if operara:
-        _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
-        concepto.register_concepto()
-    else:
-        _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
+#     concepto = Concepto(cursor, _logger, options, postgres_connect)
+#     #operara = concepto.check_existence_rubro_and_cuentas()
+#     if operara:
+#         _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
+#         #concepto.register_concepto()
+#     else:
+#         _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
+
+    # registrar homologacion
+    homologacion = Homologacion(cursor, _logger, options, postgres_connect)
+    homologacion.register_homologacion()
 
 if __name__ == '__main__':
     main()
