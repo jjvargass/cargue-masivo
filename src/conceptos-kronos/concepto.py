@@ -262,3 +262,18 @@ class Concepto():
             self._logger.error('********* register_facultad_proyecto **********')
             self._logger.exception(e)
             self.connect.rollback()()
+
+
+    def add_facultad_proyecto_concepto_ya_registrado(self):
+        self._logger.debug("+++ Registra facultad proyecto +++")
+        with open(self.options.path_csv) as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                try:
+                    self._logger.debug("*** Concepto: {0} ***".format(row['id_concepto']))
+                    self.register_facultad_proyecto(row['id_concepto'], row['facultad'], row['proyecto_curricular'])
+                except Exception as e:
+                    self._logger.error('************* register_concepto *************')
+                    self._logger.exception(e)
+            self._logger.debug("+++ Fin facultad proyecto +++")
+
