@@ -5,6 +5,7 @@ from psycopg2 import *
 import csv
 from cuenta_contable import CuentaContable
 from rubro import Rubro
+from homologacion_concepto import Homologacion
 
 class Concepto():
     def __init__(self, cursor, _logger, options, connect):
@@ -63,6 +64,7 @@ class Concepto():
         with open(self.options.path_csv) as csvfile:
             reader = csv.DictReader(csvfile)
             padre_id = None
+            homologacion = Homologacion(self.cursor, self._logger, self.options, self.connect)
             for row in reader:
                 try:
                     hijo_id = None
@@ -89,6 +91,10 @@ class Concepto():
                     # registrar facultar proyecto
                     if hijo_id and row['facultad'] and row['proyecto_curricular']:
                         self.register_facultad_proyecto(hijo_id, row['facultad'], row['proyecto_curricular'])
+
+                    # registrar homologacion
+                    if row['homologacion_vigencia'] and row['fecha_creacion'] and hijo_id and row['homologacion_concepto_titan']:
+                        homologacion.add_homologaicon(row['homologacion_vigencia'], row['fecha_creacion'], hijo_id, row['homologacion_concepto_titan'])
 
                 except Exception as e:
                     self._logger.error('************* register_concepto *************')
@@ -268,10 +274,14 @@ class Concepto():
         self._logger.debug("+++ Registra facultad proyecto +++")
         with open(self.options.path_csv) as csvfile:
             reader = csv.DictReader(csvfile)
+            homologacion = Homologacion(self.cursor, self._logger, self.options, self.connect)
             for row in reader:
                 try:
                     self._logger.debug("*** Concepto: {0} ***".format(row['id_concepto']))
                     self.register_facultad_proyecto(row['id_concepto'], row['facultad'], row['proyecto_curricular'])
+                    ## registrar homologacion
+                    if row['homologacion_vigencia'] and row['homologacion_fecha_creacion'] and  row['id_concepto'] and row['homologacion_concepto_titan']:
+                        homologacion.add_homologaicon(row['homologacion_vigencia'], row['homologacion_fecha_creacion'], row['id_concepto'], row['homologacion_concepto_titan'])
                 except Exception as e:
                     self._logger.error('************* register_concepto *************')
                     self._logger.exception(e)
