@@ -60,17 +60,17 @@ def main():
 #     rubro.check_existence_rubro()
 
     # 1 Conceptos
-    concepto = Concepto(cursor, _logger, options, postgres_connect)
-    operara = concepto.check_existence_rubro_and_cuentas()
-    if operara:
-        _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
-        concepto.register_concepto()
-    else:
-        _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
+#     concepto = Concepto(cursor, _logger, options, postgres_connect)
+#     operara = concepto.check_existence_rubro_and_cuentas()
+#     if operara:
+#         _logger.warning("********* Verificación Exitosa: {0} *********\n".format(operara))
+#         concepto.register_concepto()
+#     else:
+#         _logger.warning("********* Verificación Fallida : {0} *********".format(operara))
 
 
     # 0 registrar facultad a conceptos ya registrados
-#     concepto = Concepto(cursor, _logger, options, postgres_connect)
-#     concepto.add_facultad_proyecto_concepto_ya_registrado()
+    concepto = Concepto(cursor, _logger, options, postgres_connect)
+    concepto.add_facultad_proyecto_concepto_ya_registrado()
 if __name__ == '__main__':
     main()
